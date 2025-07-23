@@ -22,23 +22,17 @@ data = {
 
 df = pd.DataFrame(data)
 
-# Convert features to numbers
+# TF-IDF vectorizer on features
 tfidf = TfidfVectorizer()
 tfidf_matrix = tfidf.fit_transform(df['features'])
 
-# Compute similarity
-cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
+# Function to recommend laptops based on user query (e.g., "Graphic designing")
+def recommend_laptops_by_feature(query, tfidf_matrix=tfidf_matrix):
+    query_vec = tfidf.transform([query])
+    cosine_sim = linear_kernel(query_vec, tfidf_matrix).flatten()
+    top_indices = cosine_sim.argsort()[-3:][::-1]  # Top 3 results
+    return df.iloc[top_indices][['name', 'features']]
 
-# Recommendation function
-def recommend_laptops(name, cosine_sim=cosine_sim):
-    idx = df[df['name'] == name].index[0]
-    sim_scores = list(enumerate(cosine_sim[idx]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-    sim_scores = sim_scores[1:3]
-    laptop_indices = [i[0] for i in sim_scores]
-    return df['name'].iloc[laptop_indices]
-
-# Test example
-print("Recommended laptops for 'HP Pavilion Gaming':")
-print(recommend_laptops('HP Pavilion Gaming'))
- 
+# Example usage
+print("Recommended laptops for 'Graphic designing':")
+print(recommend_laptops_by_feature('Graphic designing'))
